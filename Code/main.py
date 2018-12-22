@@ -15,7 +15,7 @@ class Parameter():
     def __init__(self):
         self.PATH = '../Data/'
         self.FILE = 'datingTestSet2.txt'
-        self.EPOCH = 100
+        self.EPOCH = 10
 
 
 # %% Hyper Parameter
@@ -58,14 +58,15 @@ class LR_Classifier(torch.nn.Module):
         y = self.sigmoid(x)
         return y
 
-1111
-# %%
+# %% Create Classifier
 LR1 = LR_Classifier()
 torch.save(LR1.state_dict(), Parm.PATH + 'LR1.pth')
 LR2 = LR_Classifier()
 LR2.load_state_dict(torch.load(Parm.PATH + 'LR1.pth'))
 LR3 = LR_Classifier()
 LR3.load_state_dict(torch.load(Parm.PATH + 'LR1.pth'))
+LR4 = LR_Classifier()
+LR4.load_state_dict(torch.load(Parm.PATH + 'LR1.pth'))
 # %% Save
 Acc = np.zeros((Parm.EPOCH, 3))
 # %% Network1
@@ -100,7 +101,7 @@ for epoch in range(Parm.EPOCH):
     Acc[epoch, 1] = (pre_y2 == train_label_numpy).sum()
     print(Acc[epoch, 1] / len(pre_y2))
 print(1111111111111111111111)
-# %%
+# %% Network3
 optimizer3 = torch.optim.SGD(LR3.parameters(), lr=0.01)
 criterion3 = torch.nn.CrossEntropyLoss()
 
@@ -121,5 +122,4 @@ for epoch in range(Parm.EPOCH):
 
     Acc[epoch, 2] = (pre_y3 == train_label_numpy).sum()
     print(Acc[epoch, 2] / len(pre_y3))
-
-#%%
+#%% Network4
