@@ -58,7 +58,7 @@ class LR_Classifier(torch.nn.Module):
         y = self.sigmoid(x)
         return y
 
-
+1111
 # %%
 LR1 = LR_Classifier()
 torch.save(LR1.state_dict(), Parm.PATH + 'LR1.pth')
@@ -121,3 +121,5 @@ for epoch in range(Parm.EPOCH):
 
     Acc[epoch, 2] = (pre_y3 == train_label_numpy).sum()
     print(Acc[epoch, 2] / len(pre_y3))
+
+#%%
