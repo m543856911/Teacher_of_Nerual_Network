@@ -32,6 +32,12 @@ class LR_Classifier(torch.nn.Module):
 
 
 # %% Mini-Batch Gradient descent
+class Mr_Result():
+    def __init__(self):
+        self.train = None
+        self.test = None
+
+
 class Result():
     def __init__(self, correct, total):
         self.correct = correct
@@ -47,17 +53,21 @@ def compare_label(y, label):
     result = dict()
     for i in range(class_amount):
         result[i] = Result(int((pre_y[label == i] == i).sum()), int((label == i).sum()))
-    result['Acc'] = (pre_y == label).sum()
-    result['Acc_rate'] = result['Acc']/len(pre_y)
+    result['Total'] = Result(int((pre_y == label).sum()), len(label))
     return result
 
 
-def MGD(network, feature, label, batch_size=1, lr=0.01, show=True):
+def MGD(network, feature, label, test_feature=None, test_label=None, batch_size=1, lr=0.01, show=True):
+    N = len(feature)  # data amount
+    result = []
+
+    test_mode = False
+    if (type(test_feature) != type(None)) and \
+            (type(test_label) != type(None)):
+        test_mode = True
+
     optimizer = torch.optim.SGD(network.parameters(), lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
-    N = len(feature)  # data amount
-    Acc = np.array(range(0, N, batch_size))
-    result_all = []
     for i in range(0, N, batch_size):
         y = network(feature[i: i + batch_size])
 
@@ -65,12 +75,64 @@ def MGD(network, feature, label, batch_size=1, lr=0.01, show=True):
         loss.backward()
         optimizer.step()
 
-        result = compare_label(network(feature), label)
-        Acc[i] = result['Acc']
-        result_all.append(result)
+        result_step = Mr_Result()
+
+        result_step.train = compare_label(network(feature), label)
+        if test_mode:
+            result_step.test = compare_label(network(test_feature), test_label)
+        result.append(result_step)
 
         if show:
-            print('Accuracy is %s' % Acc[i])
+            if test_mode:
+                print('Train Accuracy is %s, Test Accuracy is %s' % (
+                result_step.train['Total'].accuracy, result_step.test['Total'].accuracy))
+            else:
+                print('Accuracy is %s' % result_step.train['Total'].accuracy)
 
-    return result_all
+    return result
 
+
+# %% Plot
+def plot_result(result):
+    names = list(result[0].train.keys())
+    times = len(result)
+    test_mode = False
+    if result[0].test != None:
+        test_mode = True
+
+    lines = dict([(i, []) for i in names])
+    test_lines = dict([(i, []) for i in names])
+    for i in result:
+        for j in names:
+            lines[j].append(i.train[j].accuracy)
+            if test_mode:
+                test_lines[j].append(i.test[j].accuracy)
+
+    plt.figure()
+    if test_mode:
+        plt.subplot(2, 1, 1)
+    plots = []
+    for i in names:
+        if i == 'Total':
+            plots.append(plt.plot(list(range(times)), lines[i], linewidth=3)[0])
+        else:
+            plots.append(plt.plot(list(range(times)), lines[i])[0])
+    plt.xlim(0, len(result))
+    plt.ylim(0, 1)
+    plt.title('Train Accuracy - %s' % result[-1].train['Total'].accuracy)
+    plt.legend(plots, names)
+    plt.grid(True)
+    if test_mode:
+        plt.subplot(2, 1, 2)
+        plots = []
+        for i in names:
+            if i == 'Total':
+                plots.append(plt.plot(list(range(times)), test_lines[i], linewidth=3)[0])
+            else:
+                plots.append(plt.plot(list(range(times)), test_lines[i])[0])
+        plt.xlim(0, len(result))
+        plt.ylim(0, 1)
+        plt.title('Test Accuracy - %s' % result[-1].test['Total'].accuracy)
+        plt.legend(plots, names)
+        plt.grid(True)
+    plt.show()
