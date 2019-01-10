@@ -37,9 +37,9 @@ def split(feature, label, train_amount, shuffle=False):
     return train_feature, train_label, test_feature, test_label
 
 #%% Change to Tensor
-def toTensor(data, istest=False):
+def toTensor(data, islabel=False):
     data =np.array(data)
-    if istest:
+    if islabel:
         data = torch.Tensor(data).type(torch.LongTensor)
     else:
         data = torch.Tensor(data)

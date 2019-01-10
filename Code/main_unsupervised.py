@@ -19,7 +19,7 @@ class Parameter():
     def __init__(self):
         self.PATH = '../Data/'  # path 路径
         self.FILE = 'datingTestSet2.txt'  # file name 文件名
-        self.EPOCH = 4 # epoch 迭代次数
+        self.EPOCH = 1 # epoch 迭代次数
         self.TRAINTEST = 4 / 1  # train/test 训练集与测试集的比例
 
     def stats(self, data):  # statistics 统计
@@ -51,7 +51,7 @@ train_feature0, train_label0, test_feature, test_label = mn.dataprocess.split(fe
 LR1 = mn.LR_Classifier(Parm.feature_amount, 3)
 # torch.save(LR1.state_dict(), Parm.PATH + 'LR1.pth')
 # %% Lesson
-lessons = ['Lesson1-1', 'Lesson1-2', 'None']
+lessons = ['Lesson1-1', 'None']
 for l in lessons:
     if l == 'Lesson1-1':
         repeat = 1
@@ -66,10 +66,10 @@ for l in lessons:
         train_feature, train_label = train_feature0.copy(), train_label0.copy()
     # %% To Tensor
     train_feature = dataprocess.toTensor(train_feature)
-    train_label = dataprocess.toTensor(train_label, istest=True)
+    train_label = dataprocess.toTensor(train_label, islabel=True)
 
     test_feature = dataprocess.toTensor(test_feature)
-    test_label = dataprocess.toTensor(test_label, istest=True)
+    test_label = dataprocess.toTensor(test_label, islabel=True)
     # %% Create LR
     LR2 = mn.LR_Classifier(Parm.feature_amount, 3)
     LR2.load_state_dict(torch.load(Parm.PATH + 'LR1.pth'))
@@ -78,7 +78,7 @@ for l in lessons:
     pbar = tqdm(total=round(Parm.EPOCH/repeat))
     print('start')
     for epoch in range(round(Parm.EPOCH/repeat)):
-        result += mn.MGD(LR2, train_feature, train_label, test_feature, test_label, batch_size=2, show=False)
+        result += mn.MGD(LR2, train_feature, train_label, test_feature, test_label, batch_size=1, show=False)
         pbar.update(1)
     pbar.close()
     # %% plot
