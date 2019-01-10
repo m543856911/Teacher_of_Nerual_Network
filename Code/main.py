@@ -7,45 +7,52 @@
 # %% Import Packages
 import pandas as pd
 import numpy as np
+import math
 import torch
-
 
 # %% Parameter
 class Parameter():
     def __init__(self):
-        self.PATH = '../Data/'
-        self.FILE = 'datingTestSet2.txt'
-        self.EPOCH = 10
+        self.PATH = '../Data/'  # path 路径
+        self.FILE = 'datingTestSet2.txt'  # file name 文件名
+        self.EPOCH = 10  # epoch 迭代次数
+        self.TRAINTEST = 4/1  # train/test 训练集与测试集的比例
 
+    def stats(self, shape):  # statistics 统计
+        self.total_amount = shape[0]
+        self.train_amount = math.ceil(shape[0]*self.TRAINTEST/(self.TRAINTEST+1))
+        self.test_amount = shape[0] - self.train_amount
+        self.feature_amount = shape[1] - 1
 
 # %% Hyper Parameter
 Parm = Parameter()
 # %% Read Data
 data = pd.read_csv(Parm.PATH + Parm.FILE, sep='\t', names=[
     '飞行公里', '冰淇淋消费', '游戏', '程度'])
+
+Parm.stats(data.shape)
 # %% Normalization
-feature = data.iloc[:, :3]  # feature
-label = data.iloc[:, 3]  # label
+feature = data.iloc[:, :Parm.feature_amount]  # feature
+label = data.iloc[:, -1]  # label
 # feature norm (z-score)
 feature -= feature.mean()
 feature /= feature.std()
 # label norm (from 0 to n)
 label -= label.min()
 # %% Split Data
-train_feature = np.array(feature.iloc[:800])
-train_label = np.array(label.iloc[:800])
-
-test_feature = np.array(feature.iloc[800:])
-test_label = np.array(label.iloc[:800])
-# %%
+# train_set
+train_feature = np.array(feature.iloc[:Parm.train_amount])
+train_label = np.array(label.iloc[:Parm.train_amount])
+# test_set
+test_feature = np.array(feature.iloc[Parm.train_amount:])
+test_label = np.array(label.iloc[:Parm.train_amount])
+# %% To Tensor
 train_feature = torch.Tensor(train_feature)
 train_label_numpy = train_label.copy()
 train_label = torch.Tensor(train_label).type(torch.LongTensor)
 
 test_feature = torch.Tensor(test_feature)
 test_label = torch.Tensor(test_label).type(torch.LongTensor)
-
-
 # %%
 class LR_Classifier(torch.nn.Module):
     def __init__(self):
